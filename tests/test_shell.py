@@ -1,7 +1,7 @@
 """Тесты ядра shell."""
 
-import io
 import contextlib
+import io
 
 from src import shell
 from src.history import CommandHistory
@@ -47,9 +47,7 @@ def test_pwd_in_subdir():
 def test_ls_lists_children():
     """ls печатает имена детей без '..'."""
     root = _make_root()
-    _, output = _capture(
-        shell._dispatch, root, "ls", [], _make_history()
-    )
+    _, output = _capture(shell._dispatch, root, "ls", [], _make_history())
     assert "docs" in output
     assert "readme.txt" in output
     assert ".." not in output
@@ -58,9 +56,7 @@ def test_ls_lists_children():
 def test_cd_to_subdir():
     """cd переходит в поддиректорию."""
     root = _make_root()
-    new_node, should_exit = shell._dispatch(
-        root, "cd", ["docs"], _make_history()
-    )
+    new_node, should_exit = shell._dispatch(root, "cd", ["docs"], _make_history())
     assert new_node is root.data["docs"]
     assert should_exit is False
 
@@ -70,9 +66,7 @@ def test_cd_to_missing_dir():
     root = _make_root()
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
-        new_node, _ = shell._dispatch(
-            root, "cd", ["missing"], _make_history()
-        )
+        new_node, _ = shell._dispatch(root, "cd", ["missing"], _make_history())
     assert new_node is root
     assert "No such file or directory" in buffer.getvalue()
 
@@ -80,27 +74,21 @@ def test_cd_to_missing_dir():
 def test_exit_command():
     """exit возвращает should_exit=True."""
     root = _make_root()
-    _, should_exit = shell._dispatch(
-        root, "exit", [], _make_history()
-    )
+    _, should_exit = shell._dispatch(root, "exit", [], _make_history())
     assert should_exit is True
 
 
 def test_unknown_command():
     """Неизвестная команда печатает ошибку."""
     root = _make_root()
-    _, output = _capture(
-        shell._dispatch, root, "foobar", [], _make_history()
-    )
+    _, output = _capture(shell._dispatch, root, "foobar", [], _make_history())
     assert "foobar: command not found" in output
 
 
 def test_empty_command():
     """Пустая команда ничего не делает."""
     root = _make_root()
-    new_node, should_exit = shell._dispatch(
-        root, None, [], _make_history()
-    )
+    new_node, should_exit = shell._dispatch(root, None, [], _make_history())
     assert new_node is root
     assert should_exit is False
 
@@ -108,9 +96,7 @@ def test_empty_command():
 def test_pwd_command():
     """Команда pwd печатает путь."""
     root = _make_root()
-    _, output = _capture(
-        shell._dispatch, root, "pwd", [], _make_history()
-    )
+    _, output = _capture(shell._dispatch, root, "pwd", [], _make_history())
     assert output.strip() == "/"
 
 
@@ -120,9 +106,7 @@ def test_history_command():
     hist = _make_history()
     hist.add("ls")
     hist.add("cd docs")
-    _, output = _capture(
-        shell._dispatch, root, "history", [], hist
-    )
+    _, output = _capture(shell._dispatch, root, "history", [], hist)
     assert "1  ls" in output
     assert "2  cd docs" in output
 
@@ -130,26 +114,22 @@ def test_history_command():
 def test_find_command_found():
     """find находит файл в поддереве."""
     root = _make_root()
-    _, output = _capture(
-        shell._dispatch, root, "find", ["readme.txt"], _make_history()
-    )
+    _, output = _capture(shell._dispatch, root, "find", ["readme.txt"], _make_history())
     assert "/readme.txt" in output
 
 
 def test_find_command_missing():
     """find с несуществующим именем печатает ошибку."""
     root = _make_root()
-    _, output = _capture(
-        shell._dispatch, root, "find", ["missing"], _make_history()
-    )
+    _, output = _capture(shell._dispatch, root, "find", ["missing"], _make_history())
     assert "No such file or directory" in output
+
 
 def test_cp_creates_copy():
     """cp создаёт копию файла."""
     root = _make_root()
     _, _ = _capture(
-        shell._dispatch,
-        root, "cp", ["readme.txt", "copy.txt"], _make_history()
+        shell._dispatch, root, "cp", ["readme.txt", "copy.txt"], _make_history()
     )
     assert "copy.txt" in root.data
     assert root.data["copy.txt"].is_file()
@@ -160,8 +140,7 @@ def test_cp_missing_source():
     """cp с несуществующим источником печатает ошибку."""
     root = _make_root()
     _, output = _capture(
-        shell._dispatch,
-        root, "cp", ["missing.txt", "new.txt"], _make_history()
+        shell._dispatch, root, "cp", ["missing.txt", "new.txt"], _make_history()
     )
     assert "No such file or directory" in output
     assert "new.txt" not in root.data
@@ -171,19 +150,13 @@ def test_rm_removes_file():
     """rm удаляет файл из директории."""
     root = _make_root()
     assert "readme.txt" in root.data
-    _, _ = _capture(
-        shell._dispatch,
-        root, "rm", ["readme.txt"], _make_history()
-    )
+    _, _ = _capture(shell._dispatch, root, "rm", ["readme.txt"], _make_history())
     assert "readme.txt" not in root.data
 
 
 def test_rm_directory_error():
     """rm на директории печатает ошибку."""
     root = _make_root()
-    _, output = _capture(
-        shell._dispatch,
-        root, "rm", ["docs"], _make_history()
-    )
+    _, output = _capture(shell._dispatch, root, "rm", ["docs"], _make_history())
     assert "Is a directory" in output
     assert "docs" in root.data

@@ -1,3 +1,7 @@
+"""
+Ядро эмулятора shell: REPL и диспетчер команд.
+"""
+
 from src import parser
 from src.commands.cd import cd
 from src.commands.cp import cp
@@ -8,20 +12,6 @@ from src.commands.pwd import pwd
 from src.commands.rm import rm
 from src.history import CommandHistory
 from src.vfs.filesystem import pwd as get_pwd
-
-"""
-Ядро эмулятора shell: REPL и диспетчер команд.
-"""
-
-from src import parser
-from src.commands.cd import cd
-from src.commands.find import find
-from src.commands.history import history
-from src.commands.ls import ls
-from src.commands.pwd import pwd
-from src.history import CommandHistory
-from src.vfs.filesystem import pwd as get_pwd
-
 
 EXIT_COMMAND = "exit"
 COMMENT_PREFIX = "#"
@@ -134,8 +124,6 @@ def run_script(node, path, history_obj=None):
             if command != "history":
                 history_obj.add(stripped)
 
-            node, should_exit = _dispatch(
-                node, command, args, history_obj
-            )
+            node, should_exit = _dispatch(node, command, args, history_obj)
             if should_exit:
                 return

@@ -26,9 +26,13 @@ def test_script_arg():
 
 def test_both_args():
     """Оба параметра вместе."""
-    args = main.parse_args([
-        "--vfs", "examples/vfs_demo",
-        "--script", "scripts/startup.txt",
-    ])
+    args = main.parse_args(
+        [
+            "--vfs",
+            "examples/vfs_demo",
+            "--script",
+            "scripts/startup.txt",
+        ]
+    )
     assert args.vfs == "examples/vfs_demo"
     assert args.script == "scripts/startup.txt"
