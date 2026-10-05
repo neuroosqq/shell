@@ -1,1 +1,24 @@
 # Стартовый скрипт
+# Startup script for shell emulator
+# Lines starting with # are comments and are skipped.
+
+# Show current directory listing
+ls
+
+# Show listing with flags
+ls -l
+
+# Try to change to a subdirectory
+cd docs
+
+# Change back to parent
+cd ..
+
+# Try a command with a quoted argument
+cd "my folder"
+
+# Demonstrate error handling
+unknowncommand
+
+# Exit
+exit

@@ -1,0 +1,4 @@
+About this VFS.
+
+It contains several files and folders
+for testing the shell emulator.
