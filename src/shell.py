@@ -1,3 +1,14 @@
+from src import parser
+from src.commands.cd import cd
+from src.commands.cp import cp
+from src.commands.find import find
+from src.commands.history import history
+from src.commands.ls import ls
+from src.commands.pwd import pwd
+from src.commands.rm import rm
+from src.history import CommandHistory
+from src.vfs.filesystem import pwd as get_pwd
+
 """
 Ядро эмулятора shell: REPL и диспетчер команд.
 """
@@ -50,6 +61,10 @@ def _dispatch(node, command, args, history_obj):
             history(history_obj)
         case ("find", [name]):
             find(node, name)
+        case ("cp", [source, dest]):
+            cp(node, source, dest)
+        case ("rm", [name]):
+            rm(node, name)
         case _:
             print(f"{command}: command not found")
 

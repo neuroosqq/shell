@@ -143,3 +143,47 @@ def test_find_command_missing():
         shell._dispatch, root, "find", ["missing"], _make_history()
     )
     assert "No such file or directory" in output
+
+def test_cp_creates_copy():
+    """cp создаёт копию файла."""
+    root = _make_root()
+    _, _ = _capture(
+        shell._dispatch,
+        root, "cp", ["readme.txt", "copy.txt"], _make_history()
+    )
+    assert "copy.txt" in root.data
+    assert root.data["copy.txt"].is_file()
+    assert root.data["copy.txt"].data == "hello"
+
+
+def test_cp_missing_source():
+    """cp с несуществующим источником печатает ошибку."""
+    root = _make_root()
+    _, output = _capture(
+        shell._dispatch,
+        root, "cp", ["missing.txt", "new.txt"], _make_history()
+    )
+    assert "No such file or directory" in output
+    assert "new.txt" not in root.data
+
+
+def test_rm_removes_file():
+    """rm удаляет файл из директории."""
+    root = _make_root()
+    assert "readme.txt" in root.data
+    _, _ = _capture(
+        shell._dispatch,
+        root, "rm", ["readme.txt"], _make_history()
+    )
+    assert "readme.txt" not in root.data
+
+
+def test_rm_directory_error():
+    """rm на директории печатает ошибку."""
+    root = _make_root()
+    _, output = _capture(
+        shell._dispatch,
+        root, "rm", ["docs"], _make_history()
+    )
+    assert "Is a directory" in output
+    assert "docs" in root.data

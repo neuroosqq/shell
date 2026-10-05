@@ -1,40 +1,37 @@
 # Startup script for shell emulator
 # Lines starting with # are comments and are skipped.
 
-# Show current directory listing
+# --- Basic commands ---
 ls
-
-# Show current path
 pwd
 
-# Try to change to a subdirectory
+# --- Change directory ---
 cd docs
-
-# Show listing inside subdirectory
 ls
-
-# Show current path
 pwd
-
-# Search for a file in current subtree
-find about.txt
-
-# Go back to parent
 cd ..
 
-# Search for a file from the root
+# --- Find files ---
+find about.txt
 find hello.py
-
-# Search for a missing file
 find missing.txt
 
-# Try a command with a quoted argument
-cd "my folder"
+# --- Copy files ---
+cp readme.txt backup.txt
+ls
 
-# Unknown command
+# --- Remove files ---
+rm backup.txt
+ls
+
+# --- Error handling ---
+cp missing.txt new.txt
+rm missing.txt
+rm docs
+cd "my folder"
 unknowncommand
 
-# Show history of all commands
+# --- History ---
 history
 
 # Exit
