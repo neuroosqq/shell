@@ -3,87 +3,93 @@
 """
 
 from src import parser
-from src.commands import cd, ls
+from src.commands.cd import cd
+from src.commands.ls import ls
+from src.vfs.node import PARENT_KEY
 
 
-PROMPT = "vfs> "
 EXIT_COMMAND = "exit"
 COMMENT_PREFIX = "#"
 
-# Реестр команд: имя -> функция(args) -> строка
-COMMANDS = {
-    "ls": ls.execute,
-    "cd": cd.execute,
-}
 
-
-def execute_command(command, args):
+def pwd(node):
     """
-    Выполняет команду по имени.
+    Возвращает абсолютный путь к текущей директории.
+
+    Рекурсивно поднимается по '..' до корня. Корень —
+    директория, у которой нет родителя.
 
     Args:
-        command: Имя команды.
+        node: Текущая директория VFS.
+
+    Returns:
+        Строка пути, начинающаяся и заканчивающаяся '/'.
+    """
+    if PARENT_KEY not in node.data:
+        return "/"
+
+    parent = node.data[PARENT_KEY]
+    for name, child in parent.data.items():
+        if name != PARENT_KEY and child is node:
+            return pwd(parent) + name + "/"
+
+    return "/"
+
+
+def _prompt(node):
+    """Формирует приглашение к вводу."""
+    return f"{pwd(node)}> "
+
+
+def _dispatch(node, command, args):
+    """
+    Выполняет команду. Возвращает (node, should_exit).
+
+    Args:
+        node: Текущая директория VFS.
+        command: Имя команды (или None).
         args: Список аргументов.
 
     Returns:
-        Строка для вывода пользователю.
+        Кортеж (новая текущая директория, флаг выхода).
     """
     if command is None:
-        return ""
-    handler = COMMANDS.get(command)
-    if handler is None:
-        return f"{command}: command not found"
-    return handler(args)
+        return node, False
+
+    match (command, args):
+        case ("exit", _):
+            return node, True
+        case ("ls", []):
+            ls(node)
+        case ("cd", [name]):
+            node = cd(node, name)
+        case _:
+            print(f"{command}: command not found")
+
+    return node, False
 
 
-def process_line(line):
+def repl(node):
     """
-    Обрабатывает одну строку ввода.
-
-    Возвращает (should_exit, output).
-    Если строка — комментарий или пустая, output пустой.
+    Запускает интерактивный цикл Read-Eval-Print.
 
     Args:
-        line: Строка ввода (без \\n).
-
-    Returns:
-        Кортеж (should_exit, output).
-    """
-    stripped = line.strip()
-    if not stripped or stripped.startswith(COMMENT_PREFIX):
-        return False, ""
-
-    command, args = parser.parse_command(line)
-
-    if command == EXIT_COMMAND:
-        return True, ""
-
-    output = execute_command(command, args)
-    return False, output
-
-
-def repl():
-    """
-    Запускает цикл Read-Eval-Print.
-
-    Читает строку, разбирает её, выполняет команду
-    и печатает результат.
+        node: Корневая директория VFS.
     """
     while True:
         try:
-            line = input(PROMPT)
+            line = input(_prompt(node))
         except (EOFError, KeyboardInterrupt):
             print()
-            break
+            return
 
-        should_exit, output = process_line(line)
+        command, args = parser.parse_command(line)
+        node, should_exit = _dispatch(node, command, args)
         if should_exit:
-            break
-        if output:
-            print(output)
+            return
 
 
-def run_script(path):
+def run_script(node, path):
     """
     Выполняет команды из скрипта.
 
@@ -92,6 +98,7 @@ def run_script(path):
     пропускаются. Останавливается по команде exit.
 
     Args:
+        node: Корневая директория VFS.
         path: Путь к файлу скрипта.
     """
     with open(path, "r", encoding="utf-8") as file:
@@ -102,10 +109,9 @@ def run_script(path):
             if not stripped or stripped.startswith(COMMENT_PREFIX):
                 continue
 
-            print(f"{PROMPT}{stripped}")
+            print(f"{_prompt(node)}{stripped}")
 
-            should_exit, output = process_line(line)
-            if output:
-                print(output)
+            command, args = parser.parse_command(line)
+            node, should_exit = _dispatch(node, command, args)
             if should_exit:
-                break
+                return

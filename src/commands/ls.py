@@ -1,16 +1,18 @@
-"""Команда ls (заглушка на Этапе 1)."""
+"""Команда ls: вывод содержимого директории."""
+
+from src.vfs.node import PARENT_KEY
 
 
-def execute(args):
+def ls(node):
     """
-    Выполняет команду ls.
+    Печатает имена детей директории node.
 
-    На Этапе 1 выводит своё имя и аргументы.
+    Ключ '..' не выводится.
 
     Args:
-        args: Список аргументов команды.
-
-    Returns:
-        Строка для вывода пользователю.
+        node: Текущая директория VFS.
     """
-    return f"ls: args={args}"
+    names = [name for name in node.data if name != PARENT_KEY]
+    if not names:
+        return
+    print("  ".join(sorted(names)))

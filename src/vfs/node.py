@@ -1,28 +1,38 @@
-"""Узел виртуальной файловой системы (заготовка)."""
+"""Узел виртуальной файловой системы."""
+
+
+DIR = "dir"
+FILE = "file"
+
+PARENT_KEY = ".."
 
 
 class Node:
     """
     Узел VFS: файл или директория.
 
-    Attributes:
-        file_type: Тип узла — 'dir' или 'file'.
-        data: Содержимое (для файла) или словарь
-              имя_ребёнка -> Node (для директории).
+    Для директории data — словарь {имя: Node}, в который
+    включён ключ '..' со ссылкой на родительскую директорию.
+    Для файла data — строка с содержимым.
     """
-
-    DIR = "dir"
-    FILE = "file"
 
     def __init__(self, file_type, data=None):
         """
         Создаёт узел.
 
         Args:
-            file_type: 'dir' или 'file'.
-            data: Содержимое или словарь детей.
+            file_type: DIR или FILE.
+            data: Словарь детей (для DIR) или строка (для FILE).
         """
         self.file_type = file_type
         if data is None:
-            data = {} if file_type == self.DIR else ""
+            data = {} if file_type == DIR else ""
         self.data = data
+
+    def is_dir(self):
+        """Возвращает True, если узел — директория."""
+        return self.file_type == DIR
+
+    def is_file(self):
+        """Возвращает True, если узел — файл."""
+        return self.file_type == FILE
