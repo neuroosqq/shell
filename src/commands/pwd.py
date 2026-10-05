@@ -1,6 +1,13 @@
-"""Команда pwd (зарезервирована для Этапа 4)."""
+"""Команда pwd: вывод текущего пути."""
+
+from src.vfs.filesystem import pwd as _pwd
 
 
-def execute(args):
-    """Заглушка команды pwd."""
-    return "pwd: not implemented yet"
+def pwd(node):
+    """
+    Печатает абсолютный путь текущей директории.
+
+    Args:
+        node: Текущая директория VFS.
+    """
+    print(_pwd(node))

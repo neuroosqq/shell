@@ -4,23 +4,38 @@
 # Show current directory listing
 ls
 
+# Show current path
+pwd
+
 # Try to change to a subdirectory
 cd docs
 
 # Show listing inside subdirectory
 ls
 
-# Try a nested path
+# Show current path
+pwd
+
+# Search for a file in current subtree
+find about.txt
+
+# Go back to parent
 cd ..
+
+# Search for a file from the root
+find hello.py
+
+# Search for a missing file
+find missing.txt
 
 # Try a command with a quoted argument
 cd "my folder"
 
-# Demonstrate error handling
-cd nonexistent
-
 # Unknown command
 unknowncommand
+
+# Show history of all commands
+history
 
 # Exit
 exit

@@ -4,44 +4,24 @@
 
 from src import parser
 from src.commands.cd import cd
+from src.commands.find import find
+from src.commands.history import history
 from src.commands.ls import ls
-from src.vfs.node import PARENT_KEY
+from src.commands.pwd import pwd
+from src.history import CommandHistory
+from src.vfs.filesystem import pwd as get_pwd
 
 
 EXIT_COMMAND = "exit"
 COMMENT_PREFIX = "#"
 
 
-def pwd(node):
-    """
-    Возвращает абсолютный путь к текущей директории.
-
-    Рекурсивно поднимается по '..' до корня. Корень —
-    директория, у которой нет родителя.
-
-    Args:
-        node: Текущая директория VFS.
-
-    Returns:
-        Строка пути, начинающаяся и заканчивающаяся '/'.
-    """
-    if PARENT_KEY not in node.data:
-        return "/"
-
-    parent = node.data[PARENT_KEY]
-    for name, child in parent.data.items():
-        if name != PARENT_KEY and child is node:
-            return pwd(parent) + name + "/"
-
-    return "/"
-
-
 def _prompt(node):
     """Формирует приглашение к вводу."""
-    return f"{pwd(node)}> "
+    return f"{get_pwd(node)}> "
 
 
-def _dispatch(node, command, args):
+def _dispatch(node, command, args, history_obj):
     """
     Выполняет команду. Возвращает (node, should_exit).
 
@@ -49,6 +29,7 @@ def _dispatch(node, command, args):
         node: Текущая директория VFS.
         command: Имя команды (или None).
         args: Список аргументов.
+        history_obj: Объект CommandHistory.
 
     Returns:
         Кортеж (новая текущая директория, флаг выхода).
@@ -61,21 +42,31 @@ def _dispatch(node, command, args):
             return node, True
         case ("ls", []):
             ls(node)
+        case ("pwd", []):
+            pwd(node)
         case ("cd", [name]):
             node = cd(node, name)
+        case ("history", []):
+            history(history_obj)
+        case ("find", [name]):
+            find(node, name)
         case _:
             print(f"{command}: command not found")
 
     return node, False
 
 
-def repl(node):
+def repl(node, history_obj=None):
     """
     Запускает интерактивный цикл Read-Eval-Print.
 
     Args:
         node: Корневая директория VFS.
+        history_obj: Объект CommandHistory (создаётся, если None).
     """
+    if history_obj is None:
+        history_obj = CommandHistory()
+
     while True:
         try:
             line = input(_prompt(node))
@@ -83,13 +74,21 @@ def repl(node):
             print()
             return
 
+        stripped = line.strip()
+        if not stripped or stripped.startswith(COMMENT_PREFIX):
+            continue
+
         command, args = parser.parse_command(line)
-        node, should_exit = _dispatch(node, command, args)
+
+        if command != "history":
+            history_obj.add(stripped)
+
+        node, should_exit = _dispatch(node, command, args, history_obj)
         if should_exit:
             return
 
 
-def run_script(node, path):
+def run_script(node, path, history_obj=None):
     """
     Выполняет команды из скрипта.
 
@@ -100,7 +99,11 @@ def run_script(node, path):
     Args:
         node: Корневая директория VFS.
         path: Путь к файлу скрипта.
+        history_obj: Объект CommandHistory (создаётся, если None).
     """
+    if history_obj is None:
+        history_obj = CommandHistory()
+
     with open(path, "r", encoding="utf-8") as file:
         for raw_line in file:
             line = raw_line.rstrip("\n")
@@ -112,6 +115,12 @@ def run_script(node, path):
             print(f"{_prompt(node)}{stripped}")
 
             command, args = parser.parse_command(line)
-            node, should_exit = _dispatch(node, command, args)
+
+            if command != "history":
+                history_obj.add(stripped)
+
+            node, should_exit = _dispatch(
+                node, command, args, history_obj
+            )
             if should_exit:
                 return

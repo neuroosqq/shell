@@ -1,4 +1,6 @@
-"""Операции над VFS (зарезервировано для Этапа 3)."""
+"""Операции над VFS."""
+
+from src.vfs.node import DIR, PARENT_KEY, Node
 
 
 def make_default_root():
@@ -8,5 +10,28 @@ def make_default_root():
     Returns:
         Корневой узел (директория).
     """
-    from src.vfs.node import Node
-    return Node(Node.DIR, {"..": None})
+    return Node(DIR, {})
+
+
+def pwd(node):
+    """
+    Возвращает абсолютный путь к текущей директории.
+
+    Рекурсивно поднимается по '..' до корня. Корень —
+    директория, у которой нет родителя.
+
+    Args:
+        node: Текущая директория VFS.
+
+    Returns:
+        Строка пути, начинающаяся и заканчивающаяся '/'.
+    """
+    if PARENT_KEY not in node.data:
+        return "/"
+
+    parent = node.data[PARENT_KEY]
+    for name, child in parent.data.items():
+        if name != PARENT_KEY and child is node:
+            return pwd(parent) + name + "/"
+
+    return "/"
